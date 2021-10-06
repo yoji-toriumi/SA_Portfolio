@@ -6,25 +6,47 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+library(r5r)
+library(osmextract)
+library(tidyverse)
+library(sf)
+library(ggthemes)
+library(ggspatial)
+library(tigris)
+library(wesanderson)
+library(tidytransit)
+library(jpndistrict) 
+library(osmdata)
+library(stars)
+
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, results=FALSE)
 ```
 
 ## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r cars}
-summary(cars)
+pubschool <- read_sf("https://github.com/cambridgegis/cambridgegis_data/raw/main/Landmark/Public_Schools/LANDMARK_PublicSchools.geojson")
+prischool <- read_sf("https://github.com/cambridgegis/cambridgegis_data/raw/main/Landmark/Private_Schools/LANDMARK_PrivateSchools.geojson")
+openspace <- read_sf("https://github.com/cambridgegis/cambridgegis_data/raw/main/Recreation/Open_Space/RECREATION_OpenSpace.geojson")
+
+ggplot(data = openspace) +
+    annotation_map_tile(zoomin = 0, progress = "none", type = "cartolight") +
+    geom_sf(data = openspace, aes(fill = OWNER)) +
+    geom_sf(data = pubschool, aes(color = "Public")) +
+    geom_sf(data = prischool, aes(color = "Private")) +
+    geom_sf(data = pubschool, size = 30, aes(color = "Public"), alpha = 1/15) +
+    geom_sf(data = prischool, size = 30, aes(color = "Private"), alpha = 1/15)+
+    scale_color_manual(values = c("Public" = "seagreen1", "Private" = "tomato", "Public" = "seagrean1", "Private" = "tomato"), name = "Quartermile") +
+    theme_void() +
+    labs(caption = "Map tiles by OpenStreetMap")
 ```
 
 ## Including Plots
 
-You can also embed plots, for example:
 
 ```{r pressure, echo=FALSE}
-plot(pressure)
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
