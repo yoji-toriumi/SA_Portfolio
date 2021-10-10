@@ -1,10 +1,10 @@
 ---
-title: "Portfolio"
-author: "Yoji"
-date: "10/6/2021"
+title: "VIS 2128 Spatial Analysis Final Portfolio"
+author: "Yoji Toriumi"
+date: "October 15th, 2021"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -23,11 +23,11 @@ library(tigris)
 library(zonebuilder)
 library(nngeo)
 
-knitr::opts_chunk$set(warning = FALSE, message = FALSE, results=FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, results=FALSE, echo = FALSE)
 setwd("C:/Users/yojit/OneDrive - Harvard University/12.Spatial_Analysis_VIS2128/Spatial_Assignment_Portfolio/SA_Portfolio")
 ```
 
-## 
+## Open spaces and schools in Cambridge
 
 ```{r cars}
 pubschool <- read_sf("https://github.com/cambridgegis/cambridgegis_data/raw/main/Landmark/Public_Schools/LANDMARK_PublicSchools.geojson")
@@ -52,7 +52,7 @@ ggplot(data = openspace_c) +
   labs(caption = "Map tiles by OpenStreetMap")
 ```
 
-## 
+## Openspaces and its distance to the nearest hospital in Boston
 ```{r pressure, echo=FALSE}
 hospitals <- read_sf("https://bostonopendata-boston.opendata.arcgis.com/datasets/8f1e5741a4ee4c0f82925d17aab3c002_2.kml?outSR=%7B%22latestWkid%22%3A2249%2C%22wkid%22%3A102686%7D")
 openspace <- read_sf("https://bostonopendata-boston.opendata.arcgis.com/datasets/2868d370c55d4d458d4ae2224ef8cddd_7.kml")
@@ -109,7 +109,7 @@ ggplot(hydro) +
                                          color = "gray"))
 ```
 
-
+## Transit time to the nearest museum in Tokyo
 ```{r}
 tokyo_streets <- read_sf("tokyo_streets.geojson")
 iso_palette <- wes_palette("Darjeeling1", n = 5)
@@ -139,7 +139,7 @@ ggplot(tokyo_streets) +
   theme(legend.background = element_rect(color = "NA"))
 ```
 
-
+## Number of bus stops within 10-minutes walk in Tokyo - Vector
 ```{r}
 transit_access <- read_sf("transit_access.geojson")
 
@@ -152,6 +152,7 @@ ggplot(transit_access) +
   theme_void()
 ```
 
+## Number of bus stops within 10-minutes walk in Tokyo - Raster
 ```{r}
 access_raster <- st_rasterize(transit_access["accessibility"], 
                               nx = 100, ny = 100) 
@@ -162,10 +163,13 @@ ggplot(tokyo_streets) +
   scale_fill_viridis_c(na.value = NA, 
                        option="A",
                        name = "Walk access to\nbus stops") +
+  annotation_scale(location = "br") +
+  annotation_north_arrow(location = "tr", style = north_arrow_minimal()) +
   labs(caption = "Map tiles and data by OpenStreetMap") +
   theme_void()
 ```
 
+## Number of bus stops within 10-minutes walk in Tokyo - Vector (Contour Map)
 ```{r}
 access_contours <- st_contour(access_raster, contour_lines = TRUE, 
                               breaks = c(0,10,20,30,40))
@@ -176,24 +180,156 @@ ggplot(tokyo_streets) +
   scale_color_viridis_c(na.value = NA, 
                        option="A",
                        breaks = c(0,10,20,30,40),
-                       name = "Walk access to\nbus stops") +annotation_scale(location = "br") +
+                       name = "Walk access to\nbus stops") + 
+  annotation_scale(location = "br") +
   annotation_north_arrow(location = "tr", style = north_arrow_minimal()) +
   labs(caption = "Map tiles and data by OpenStreetMap") +
   theme_void()
 ```
 
 ```{r}
+tokyo_boundary <- read_sf("tokyo_boundary.geojson")
+chiba <- read_sf("chiba.geojson")
+mobara_city <- read_sf("mobara_city.geojson")
 
+ggplot(tokyo_boundary, aes(fill = "gray", color = "NA")) +
+  geom_sf() +
+  geom_sf(data = chiba) +
+  geom_sf(data = mobara_city, color = "red")
+```
+
+
+## Road network in Mobara city
+```{r}
+home <- data.frame(id = 1, lon =140.263779, lat = 35.406752)
+home_crs <- home %>% 
+  st_as_sf(coords = c("lon", "lat"), crs = "WGS84")
+
+mobara_streets <- read_sf("mobara_streets.geojson")
+mobara_streets <- mobara_streets[mobara_city, ]
+mobara_streets_primary <- mobara_streets %>% 
+  filter(highway %in% c("primary", "teritary", "trunk"))
+
+mobara_school <- read_sf("mobara_school.geojson")
+mobara_element_school <- read_sf("mobara_element_school.geojson")
+
+ttm_element_school_wide <- read_sf("ttm_element_school.geojson")
+
+iso_mobara_5min <- read_sf("iso_mobara_5min.geojson")
+iso_mobara_10min <- read_sf("iso_mobara_10min.geojson")
+iso_mobara_15min <- read_sf("iso_mobara_15min.geojson")
+
+ttm_element_school_wide <- read_sf("ttm_element_school.geojson")
+
+ggplot(mobara_streets) +
+  geom_sf(color = "#b8ab66", size = 1/2) +
+  theme_minimal() +
+  theme(plot.background = element_rect(fill = "#282828"),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        axis.line = element_blank(),
+        panel.grid = element_blank()) +
+  labs(caption = "Map tiles and data by OpenStreetMap", color = "white")+
+  theme(plot.caption = element_text(color = "white"))
+```
+
+## Areas of car access from my home
+```{r}
+ggplot(mobara_streets) +
+  geom_sf(data = mobara_city, fill = "gray", alpha = 1/5) +
+  geom_sf(data = iso_mobara_15min,
+          aes(fill = "Area within 15 minutes"),
+          color = NA) +
+  geom_sf(data = iso_mobara_10min,
+          aes(fill = "Area within 10 minutes"),
+          color = NA) +
+  geom_sf(data = iso_mobara_5min,
+          aes(fill = "Area within 5 minutes"),
+          color = NA) +
+  geom_sf(alpha = 1/4) +
+  geom_sf(data = home_crs, aes(color = "Home")) +
+  geom_sf(data = mobara_streets_primary, size = 1/2, color = "gray") +
+  scale_fill_manual(values = c(iso_palette[1],
+                               iso_palette[2],
+                               iso_palette[3]),
+                    name = "Areas of car access from my home") +
+  scale_color_manual(values = "blue", name = "") +
+  annotation_scale(location = "br") +
+  annotation_north_arrow(location = "tr", style = north_arrow_minimal()) +
+  labs(caption = "Map tiles and data by OpenStreetMap") +
+  theme_void() +
+  theme(legend.background = element_rect(color = "NA"))
+```
+
+## Walking time to the nearest school in Mobara city - Vector
+```{r}
+ggplot() +
+  geom_sf(data = ttm_element_school_wide, 
+          aes(fill = from_any), 
+          color = NA) +
+  scale_fill_gradient2(low = "green", mid = "yellow", high = "red", 
+                       midpoint = 40,
+                       name = "Walking\ntime to the\nnearest school\n(minutes)") +
+  geom_sf(data = mobara_streets, color = "#b8ab66", alpha = 1/2) +
+  geom_sf(data = mobara_element_school, color = "tomato", size = 2, alpha = 2/3) +
+  geom_sf(data = home_crs, color = "deepskyblue3", size = 3, alpha = 1/2) +
+  labs(caption = "Map tiles and data by OpenStreetMap") +
+  annotation_scale(location = "br") +
+  annotation_north_arrow(location = "tr", style = north_arrow_minimal()) +
+  theme_void() +
+  theme(legend.background = element_blank())
+```
+
+## Walking time to the nearest school in Mobara city - Raster
+```{r}
+access_raster_2 <- st_rasterize(ttm_element_school_wide["from_any"], 
+                              nx = 100, ny = 100) 
+
+access_poly2 <- st_as_sf(access_raster_2, as_points = FALSE, merge = TRUE)
+
+ggplot(mobara_streets) +
+  geom_sf(data = access_poly2, aes(fill = from_any), color = 'gray', size = 1/5) +
+  geom_sf(data = mobara_element_school, color = "yellow", size = 2, alpha = 2/3) +
+  scale_fill_viridis_c(na.value = NA, 
+                       option="A",
+                       name = "Walking access to the nearest school") +
+  labs(caption = "Map tiles and data by OpenStreetMap") +
+  annotation_scale(location = "br") +
+  annotation_north_arrow(location = "tr", style = north_arrow_minimal()) +
+  theme_void()
+```
+
+## Walking time to the nearest school in Mobara city - Vector (Contour Map)
+```{r}
+access_contours_2 <- st_contour(access_raster_2, contour_lines = TRUE, 
+                              breaks = c(0,10,20,30,40))
+
+ggplot(mobara_streets) +
+  geom_sf(color = "gray") +
+  geom_sf(data = access_contours_2, aes(color = from_any), fill = NA) +
+  geom_sf(data = home_crs, color = "green", size = 3, alpha = 1/2) +
+  scale_color_viridis_c(na.value = NA, 
+                        option="A",
+                        breaks = c(0,10,20,30,40),
+                        name = "Walking access to the nearest school") +
+  labs(caption = "Map tiles and data by OpenStreetMap") +
+  annotation_scale(location = "br") +
+  annotation_north_arrow(location = "tr", style = north_arrow_minimal()) +
+  theme_void()
 ```
 
 ```{r}
+chiba <- read_sf("chiba.geojson")
+tokyo_boundary <- read_sf("tokyo_boundary.geojson")
 
+ggplot(chiba) +
+  geom_sf(aes(fill = "Chiba"), color = "NA") +
+  geom_sf(data = tokyo_boundary, aes(fill = "Tokyo"), color = "NA") +
+  geom_sf(data = mobara_city, aes(fill = "Mobara city"), color = "NA") +
+  scale_fill_manual(values = c("tomato", "green", "blue"), name = "") +
+  annotation_scale(location = "br") +
+  annotation_north_arrow(location = "tr", style = north_arrow_minimal()) +
+  theme_map()
 ```
 
-```{r}
-
-```
-
-```{r}
-
-```
