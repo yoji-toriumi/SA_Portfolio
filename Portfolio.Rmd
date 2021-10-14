@@ -2,11 +2,16 @@
 title: "VIS 2128 Spatial Analysis Final Portfolio"
 author: "Yoji Toriumi"
 date: "October 15th, 2021"
-output:
-  pdf_document: default
-  html_document: default
+output: 
+  html_document:
+    theme: cerulean
+    toc: true
+    toc_depth: 3
+    toc_float: true
 ---
 
+# Introduction
+This is a portfolio made by Yoji Toriumi, a Master in Urban Planning student at the Graduate School of Design of Harvard University. Maps on this website are the products of VIS 2128 ÅgSpatial AnalysisÅh assignments.
 ```{r setup, include=FALSE}
 library(osmextract)
 library(tidyverse)
@@ -22,38 +27,57 @@ library(stars)
 library(tigris)
 library(zonebuilder)
 library(nngeo)
+library(leaflet)
+library(tidycensus)
+library(units)
 
-knitr::opts_chunk$set(warning = FALSE, message = FALSE, results=FALSE, echo = FALSE)
+census_api_key("6e61d8662d21a3e70a7325a165b1742091cbfea6")
 setwd("C:/Users/yojit/OneDrive - Harvard University/12.Spatial_Analysis_VIS2128/Spatial_Assignment_Portfolio/SA_Portfolio")
 ```
 
-## Open spaces and schools in Cambridge
+# Cambridge, Massachusetts, USA
+## Location of Schools and Open Spaces
+This map shows polygon outlines of open spaces and point data that indicates the location of schools throughout Cambridge. Red points show private school and green points show public school. In addition, owner types of open spaces are shown in different colors.
 
-```{r cars}
+This interactive map demonstrates the following skills:
+-	Displaying multiple vector layers on the same map
+```{r, warning = FALSE, message = FALSE, echo = FALSE}
 pubschool <- read_sf("https://github.com/cambridgegis/cambridgegis_data/raw/main/Landmark/Public_Schools/LANDMARK_PublicSchools.geojson")
 prischool <- read_sf("https://github.com/cambridgegis/cambridgegis_data/raw/main/Landmark/Private_Schools/LANDMARK_PrivateSchools.geojson")
 openspace_c <- read_sf("https://github.com/cambridgegis/cambridgegis_data/raw/main/Recreation/Open_Space/RECREATION_OpenSpace.geojson")
 left_side  <- st_bbox(openspace_c)$xmin
 top_side <- st_bbox(openspace_c)$ymax
 
-ggplot(data = openspace_c) +
+Map_1 <-  ggplot(data = openspace_c) +
   annotation_map_tile(zoomin = 0, progress = "none", type = "cartolight") +
   geom_sf(data = openspace_c, aes(color = OWNER, fill = OWNER)) +
   geom_sf(data = pubschool, size = 3, color = "seagreen1", alpha = 1/2) +
   geom_sf(data = prischool, size = 3, color = "tomato", alpha = 1/2) +
   annotate(geom = "text", x = left_side, 
            y = top_side, 
-           label = paste("Location of Private and Public Schools and Their Proximity to Open Spaces"),
-           hjust = 0, vjust = 0, size = 4) +
+           label = paste("Location of Private and Public Schools\n and Their Proximity to Open Spaces"),
+           hjust = 0, vjust = 1, size = 4) +
   annotation_scale(location = "br") +
   annotation_north_arrow(location = "tr",
                          style = north_arrow_minimal()) +
   theme_void() +
   labs(caption = "Map tiles by OpenStreetMap")
+
+Map_1
+
+ggsave("Map_1.pdf", Map_1, width = 11.5, height = 8, units = c("in"), dpi = 300)
+png("Map_1.png", width = 5, height = 3, units = "in", res = 300)
+Map_1
+dev.off()
 ```
 
-## Openspaces and its distance to the nearest hospital in Boston
-```{r pressure, echo=FALSE}
+# Boston, Massachusetts, USA
+## Open Spaces by Distance to a Hospital
+This map looks at the distance of the open spaces from the closest hospitals. As a result, the average distance of open spaces from the closest hospitals is 1,458m. This is because there are islands that are treated as open spaces and they contribute to the increment of the average distance.
+
+This interactive map demonstrates the following skills:
+- Aggregating point data to a layer of polygons
+```{r, warning = FALSE, message = FALSE}
 hospitals <- read_sf("https://bostonopendata-boston.opendata.arcgis.com/datasets/8f1e5741a4ee4c0f82925d17aab3c002_2.kml?outSR=%7B%22latestWkid%22%3A2249%2C%22wkid%22%3A102686%7D")
 openspace <- read_sf("https://bostonopendata-boston.opendata.arcgis.com/datasets/2868d370c55d4d458d4ae2224ef8cddd_7.kml")
 hydro <- read_sf("https://bostonopendata-boston.opendata.arcgis.com/datasets/2b3c0fa13b1c468eb702a3645fcc6bcb_5.kml")
@@ -88,7 +112,7 @@ left_side  <- st_bbox(openspace)$xmin
 top_side <- st_bbox(openspace)$ymax
 bottom_side <- st_bbox(openspace)$ymin
 
-ggplot(hydro) +
+Map_2 <- ggplot(hydro) +
   geom_sf(fill = "cadetblue1", color = NA) +
   geom_sf(data = openspace, aes(fill = hospitals_dist)) +
   coord_sf(xlim = c(left_side, right_side),
@@ -107,17 +131,78 @@ ggplot(hydro) +
   theme(panel.background = element_rect(fill = "antiquewhite"),
         legend.background = element_rect(fill = alpha("white", 0.5), 
                                          color = "gray"))
+
+Map_2
+
+ggsave("Map_2.pdf", Map_2, width = 11.5, height = 8, units = c("in"), dpi = 300)
+ggsave("Map_2.png", Map_2, width = 6.75, height = 4, units = c("in"), dpi = 300)
 ```
 
-## Transit time to the nearest museum in Tokyo
-```{r}
+## Number of Hospitals in Every Grid
+This map shows the number of hospitals in every grid. Grids are made to divide Boston into 20 grids vertically and horizontally. The result indicates that, though Boston covers a wide range of areas, hospitals in Boston are located in certain areas.
+
+This interactive map demonstrates the following skills:
+-	Calculating and displaying relationships among point and polygon layers based on distance
+```{r, warning = FALSE, message = FALSE}
+hospitals <- read_sf("https://bostonopendata-boston.opendata.arcgis.com/datasets/8f1e5741a4ee4c0f82925d17aab3c002_2.kml?outSR=%7B%22latestWkid%22%3A2249%2C%22wkid%22%3A102686%7D")
+neighbor <- read_sf("https://bostonopendata-boston.opendata.arcgis.com/datasets/3525b0ee6e6b427f9aab5d0a1d0a1a28_0.kml?outSR=%7B%22latestWkid%22%3A2249%2C%22wkid%22%3A102686%7D")
+hydro <- read_sf("https://bostonopendata-boston.opendata.arcgis.com/datasets/2b3c0fa13b1c468eb702a3645fcc6bcb_5.kml")
+tracts <- tracts(state = "MA", county = "Suffolk")
+boundary <- st_read("https://bostonopendata-boston.opendata.arcgis.com/datasets/142500a77e2a4dbeb94a86f7e0b568bc_9.geojson?outSR=%7B%22latestWkid%22%3A2249%2C%22wkid%22%3A102686%7D")
+MA_state_plane <- "+proj=lcc +lat_1=41.71666666666667 +lat_2=42.68333333333333 +lat_0=41 +lon_0=-71.5 +x_0=200000 +y_0=750000 +ellps=GRS80 +units=m +no_defs"
+hospitals <- hospitals %>% 
+  st_transform(2249)
+
+neighbor <- neighbor %>% 
+  st_transform(2249)
+hydro <- hydro %>% 
+  st_transform(2249)
+tracts <- tracts %>% 
+  st_transform(2249)
+boundary <- boundary %>% 
+  st_transform(2249)
+tracts <- tracts[boundary, ]
+grid <- st_sf(st_make_grid(boundary, n = c(20, 20)))
+grid <- grid[boundary, ]
+clock <- zb_zone("Boston", distance = 0.5, distance_growth = 0, n_circles = 20)
+clock <- clock %>% st_transform(2249)
+clock <- clock[boundary, ]
+boundary <- boundary %>% st_transform(2249)
+
+
+grid <- grid %>%
+  mutate(num_hospitals = lengths(st_covers(grid, hospitals))) %>% 
+  mutate(area = set_units(st_area(grid), km^2)) %>% 
+  mutate(hospitals_dens = as.numeric(num_hospitals / area))
+
+
+plot_5 <- ggplot(grid) +
+  annotation_map_tile(zoomin = 0, progress = "none", type = "cartolight") +
+  geom_sf(data = grid, alpha = 1/2, aes(fill = hospitals_dens)) +
+  scale_fill_viridis_c(name = "Hospitals per grid") +
+  labs(caption = "Map tiles and data by OpenStreetMap") +
+  theme_void()
+
+plot_5
+
+ggsave("Map_3.pdf", plot_5, width = 11.5, height = 8, units = c("in"), dpi = 300)
+ggsave("Map_3.png", plot_5, width = 6.75, height = 4, units = c("in"), dpi = 300)
+```
+
+# Tokyo, Japan
+## Isochrones Map of Tokyo Three Districts
+This map shows the travel time to the nearest museums in three districts (Chiyoda-ku, Minato-ku, Chuo-ku) in Tokyo. There are many museums in Tokyo and so we can access there within 15min from a wide range of areas. However, there are no museums nearby the imperial palace (top-middle of the map), and so out-of-reach within 15min.
+
+This interactive map demonstrates the following skills:
+-	Calculating and displaying accessibility, based on travel time
+```{r, warning = FALSE, message = FALSE}
 tokyo_streets <- read_sf("tokyo_streets.geojson")
 iso_palette <- wes_palette("Darjeeling1", n = 5)
 iso_tokyo_5min <-  read_sf("iso_tokyo_5min.geojson")
 iso_tokyo_10min <-  read_sf("iso_tokyo_10min.geojson")
 iso_tokyo_15min <-  read_sf("iso_tokyo_15min.geojson")
 
-ggplot(tokyo_streets) +
+Map_4 <- ggplot(tokyo_streets) +
   geom_sf(data = iso_tokyo_15min,
           aes(fill = "Area within 15 minutes"),
           color = NA) +
@@ -137,27 +222,42 @@ ggplot(tokyo_streets) +
   labs(caption = "Map tiles and data by OpenStreetMap") +
   theme_void() +
   theme(legend.background = element_rect(color = "NA"))
+
+ggsave("Map_4.pdf", Map_4, width = 11.5, height = 8, units = c("in"), dpi = 300)
+ggsave("Map_4.png", Map_4, width = 6.75, height = 4, units = c("in"), dpi = 300)
 ```
 
-## Number of bus stops within 10-minutes walk in Tokyo - Vector
-```{r}
+## Number of Bus Stops within a 10-Minutes Walk Distance (Vector)
+This map shows the number of bus stops within a 10-minutes walk distance of Tokyo three districts. There are many bus stations at the central business district in Tokyo (top-right) and so we can access as many as 40 bus stations around there. On the other hand, the number of bus stations around the imperial palace seems scarce.
+
+This interactive map demonstrates the following skills:
+-	Calculating and displaying accessibility, based on travel time
+```{r, warning = FALSE, message = FALSE}
 transit_access <- read_sf("transit_access.geojson")
 
-ggplot(transit_access) +
+Map_5 <- ggplot(transit_access) +
   geom_sf(aes(fill = accessibility), color = NA) +
   scale_fill_viridis_c(name = "Transit stops\nwithin 10-minutes\nwalk") +
   annotation_scale(location = "br") +
   annotation_north_arrow(location = "tr", style = north_arrow_minimal()) +
   labs(caption = "Map tiles and data by OpenStreetMap") +
   theme_void()
+
+ggsave("Map_5.pdf", Map_5, width = 11.5, height = 8, units = c("in"), dpi = 300)
+ggsave("Map_5.png", Map_5, width = 6.75, height = 4, units = c("in"), dpi = 300)
 ```
 
-## Number of bus stops within 10-minutes walk in Tokyo - Raster
-```{r}
+## Number of Bus Stops within a 10-Minutes Walk Distance (Raster)
+This map is rasterized image of the above map.
+
+This interactive map demonstrates the following skills:
+-	Converting between raster layers and vector layers
+-	Displaying raster data on a map
+```{r, warning = FALSE, message = FALSE}
 access_raster <- st_rasterize(transit_access["accessibility"], 
                               nx = 100, ny = 100) 
 
-ggplot(tokyo_streets) +
+Map_6 <- ggplot(tokyo_streets) +
   geom_stars(data = access_raster) +
   geom_sf(color = "white", alpha = 0.2) +
   scale_fill_viridis_c(na.value = NA, 
@@ -167,14 +267,21 @@ ggplot(tokyo_streets) +
   annotation_north_arrow(location = "tr", style = north_arrow_minimal()) +
   labs(caption = "Map tiles and data by OpenStreetMap") +
   theme_void()
+
+ggsave("Map_6.pdf", Map_6, width = 11.5, height = 8, units = c("in"), dpi = 300)
+ggsave("Map_6.png", Map_6, width = 6.75, height = 4, units = c("in"), dpi = 300)
 ```
 
-## Number of bus stops within 10-minutes walk in Tokyo - Vector (Contour Map)
-```{r}
+## Number of Bus Stops within a 10-Minutes Walk Distance (Contour Map)
+This map is again vectorized from a raster image. 
+
+This interactive map demonstrates the following skills:
+-	Converting between raster layers and vector layers
+```{r, warning = FALSE, message = FALSE}
 access_contours <- st_contour(access_raster, contour_lines = TRUE, 
                               breaks = c(0,10,20,30,40))
 
-ggplot(tokyo_streets) +
+Map_7 <- ggplot(tokyo_streets) +
   geom_sf(color = "gray") +
   geom_sf(data = access_contours, aes(color = accessibility), fill = NA) +
   scale_color_viridis_c(na.value = NA, 
@@ -185,25 +292,23 @@ ggplot(tokyo_streets) +
   annotation_north_arrow(location = "tr", style = north_arrow_minimal()) +
   labs(caption = "Map tiles and data by OpenStreetMap") +
   theme_void()
+
+ggsave("Map_7.pdf", Map_7, width = 11.5, height = 8, units = c("in"), dpi = 300)
+ggsave("Map_7.png", Map_7, width = 6.75, height = 4, units = c("in"), dpi = 300)
 ```
 
-```{r}
-tokyo_boundary <- read_sf("tokyo_boundary.geojson")
-chiba <- read_sf("chiba.geojson")
-mobara_city <- read_sf("mobara_city.geojson")
+# Mobara city, Chiba, Japan
+## Vehicle Coverage in Mobara City
+This map shows the vehicle coverage from my home in Mobara city, where I was born. Many of the areas are within 15-minute's reach of my home.
 
-ggplot(tokyo_boundary, aes(fill = "gray", color = "NA")) +
-  geom_sf() +
-  geom_sf(data = chiba) +
-  geom_sf(data = mobara_city, color = "red")
-```
+This interactive map demonstrates the following skills:
 
-
-## Road network in Mobara city
-```{r}
+-	Calculating and displaying accessibility, based on travel time
+```{r, warning = FALSE, message = FALSE}
 home <- data.frame(id = 1, lon =140.263779, lat = 35.406752)
 home_crs <- home %>% 
   st_as_sf(coords = c("lon", "lat"), crs = "WGS84")
+mobara_city <- read_sf("mobara_city.geojson")
 
 mobara_streets <- read_sf("mobara_streets.geojson")
 mobara_streets <- mobara_streets[mobara_city, ]
@@ -221,22 +326,9 @@ iso_mobara_15min <- read_sf("iso_mobara_15min.geojson")
 
 ttm_element_school_wide <- read_sf("ttm_element_school.geojson")
 
-ggplot(mobara_streets) +
-  geom_sf(color = "#b8ab66", size = 1/2) +
-  theme_minimal() +
-  theme(plot.background = element_rect(fill = "#282828"),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        axis.title = element_blank(),
-        axis.line = element_blank(),
-        panel.grid = element_blank()) +
-  labs(caption = "Map tiles and data by OpenStreetMap", color = "white")+
-  theme(plot.caption = element_text(color = "white"))
-```
+iso_palette <- wes_palette("Darjeeling1", n = 5)
 
-## Areas of car access from my home
-```{r}
-ggplot(mobara_streets) +
+Map_8 <- ggplot(mobara_streets) +
   geom_sf(data = mobara_city, fill = "gray", alpha = 1/5) +
   geom_sf(data = iso_mobara_15min,
           aes(fill = "Area within 15 minutes"),
@@ -260,11 +352,18 @@ ggplot(mobara_streets) +
   labs(caption = "Map tiles and data by OpenStreetMap") +
   theme_void() +
   theme(legend.background = element_rect(color = "NA"))
+
+ggsave("Map_8.pdf", Map_8, width = 11.5, height = 8, units = c("in"), dpi = 300)
+ggsave("Map_8.png", Map_8, width = 6.75, height = 4, units = c("in"), dpi = 300)
 ```
 
-## Walking time to the nearest school in Mobara city - Vector
-```{r}
-ggplot() +
+## Walking Time to the Nearest School in Mobara City (Vector)
+This map shows walking distance from all of the elementary schools in Mobara city. It indicates many of the areas are under the coverage of 30 to 40 minutes distance. However, it takes more than 40 minutes from certain areas, and it is hard for elementary students to walk every day.
+
+This interactive map demonstrates the following skills:
+-	Calculating and displaying accessibility, based on travel time
+```{r, warning = FALSE, message = FALSE}
+Map_9 <- ggplot() +
   geom_sf(data = ttm_element_school_wide, 
           aes(fill = from_any), 
           color = NA) +
@@ -273,22 +372,28 @@ ggplot() +
                        name = "Walking\ntime to the\nnearest school\n(minutes)") +
   geom_sf(data = mobara_streets, color = "#b8ab66", alpha = 1/2) +
   geom_sf(data = mobara_element_school, color = "tomato", size = 2, alpha = 2/3) +
-  geom_sf(data = home_crs, color = "deepskyblue3", size = 3, alpha = 1/2) +
   labs(caption = "Map tiles and data by OpenStreetMap") +
   annotation_scale(location = "br") +
   annotation_north_arrow(location = "tr", style = north_arrow_minimal()) +
   theme_void() +
   theme(legend.background = element_blank())
+
+ggsave("Map_9.pdf", Map_9, width = 11.5, height = 8, units = c("in"), dpi = 300)
+ggsave("Map_9.png", Map_9, width = 6.75, height = 4, units = c("in"), dpi = 300)
 ```
 
-## Walking time to the nearest school in Mobara city - Raster
-```{r}
+## Walking Time to the Nearest School in Mobara City (Polygon Vector)
+This map is created from a rasterized image of the above map by generating polygons from each grid cell.
+
+This interactive map demonstrates the following skills:
+-	Converting between raster layers and vector layer
+```{r, warning = FALSE, message = FALSE}
 access_raster_2 <- st_rasterize(ttm_element_school_wide["from_any"], 
                               nx = 100, ny = 100) 
 
 access_poly2 <- st_as_sf(access_raster_2, as_points = FALSE, merge = TRUE)
 
-ggplot(mobara_streets) +
+Map_10 <- ggplot(mobara_streets) +
   geom_sf(data = access_poly2, aes(fill = from_any), color = 'gray', size = 1/5) +
   geom_sf(data = mobara_element_school, color = "yellow", size = 2, alpha = 2/3) +
   scale_fill_viridis_c(na.value = NA, 
@@ -298,14 +403,21 @@ ggplot(mobara_streets) +
   annotation_scale(location = "br") +
   annotation_north_arrow(location = "tr", style = north_arrow_minimal()) +
   theme_void()
+
+ggsave("Map_10.pdf", Map_10, width = 11.5, height = 8, units = c("in"), dpi = 300)
+ggsave("Map_10.png", Map_10, width = 6.75, height = 4, units = c("in"), dpi = 300)
 ```
 
-## Walking time to the nearest school in Mobara city - Vector (Contour Map)
-```{r}
+## Walking Time to the Nearest School in Mobara City (Contour)
+This is also vectorized map from a raster image.
+
+This interactive map demonstrates the following skills:
+-	Converting between raster layers and vector layer
+```{r, warning = FALSE, message = FALSE}
 access_contours_2 <- st_contour(access_raster_2, contour_lines = TRUE, 
                               breaks = c(0,10,20,30,40))
 
-ggplot(mobara_streets) +
+Map_11 <- ggplot(mobara_streets) +
   geom_sf(color = "gray") +
   geom_sf(data = access_contours_2, aes(color = from_any), fill = NA) +
   geom_sf(data = home_crs, color = "green", size = 3, alpha = 1/2) +
@@ -317,19 +429,10 @@ ggplot(mobara_streets) +
   annotation_scale(location = "br") +
   annotation_north_arrow(location = "tr", style = north_arrow_minimal()) +
   theme_void()
+
+ggsave("Map_11.pdf", Map_11, width = 11.5, height = 8, units = c("in"), dpi = 300)
+ggsave("Map_11.png", Map_11, width = 6.75, height = 4, units = c("in"), dpi = 300)
 ```
 
-```{r}
-chiba <- read_sf("chiba.geojson")
-tokyo_boundary <- read_sf("tokyo_boundary.geojson")
 
-ggplot(chiba) +
-  geom_sf(aes(fill = "Chiba"), color = "NA") +
-  geom_sf(data = tokyo_boundary, aes(fill = "Tokyo"), color = "NA") +
-  geom_sf(data = mobara_city, aes(fill = "Mobara city"), color = "NA") +
-  scale_fill_manual(values = c("tomato", "green", "blue"), name = "") +
-  annotation_scale(location = "br") +
-  annotation_north_arrow(location = "tr", style = north_arrow_minimal()) +
-  theme_map()
-```
 
