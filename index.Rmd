@@ -80,7 +80,7 @@ This interactive map demonstrates the following skills:
 
 # Mobara City, Chiba, Japan
 ## Vehicle Coverage in Mobara City
-This map shows the vehicle coverage from my home in Mobara city, where I was born. Many of the areas are within 15-minute's reach of my home.
+This map shows the car access from my home in Mobara city, where I was born. Many of the areas are within 15-minute's reach from my home.
 
 This interactive map demonstrates the following skills:
 
