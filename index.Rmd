@@ -2,18 +2,21 @@
 title: "VIS 2128 Spatial Analysis Final Portfolio"
 author: "Yoji Toriumi"
 date: "October 15th, 2021"
-output: 
+output:
   html_document:
     theme: cerulean
-    toc: true
+    toc: yes
     toc_depth: 3
-    toc_float: true
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 # Introduction
-This is a portfolio made by Yoji Toriumi, a Master in Urban Planning student at the Graduate School of Design of Harvard University. Maps on this website are the products of VIS 2128 “Spatial Analysis” assignments.
+This is a portfolio made by Yoji Toriumi, a Master in Urban Planning student at Harvard University Graduate School of Design. Maps on this website are the products of VIS 2128 “Spatial Analysis” assignments.
 
 # Cambridge, Massachusetts, USA
 ## Location of Schools and Open Spaces
