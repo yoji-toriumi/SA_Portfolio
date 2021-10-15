@@ -106,7 +106,7 @@ This is also vectorized map from a raster image.
 This interactive map demonstrates the following skills:
 
 *	Converting between raster layers and vector layer
-[![](thumbnails/Map_11.png)](https://yoji-toriumi.github.io/SA_Portfolio/fullsize/Map_12.pdf){target="_blank"}
+[![](thumbnails/Map_11.png)](https://yoji-toriumi.github.io/SA_Portfolio/fullsize/Map_11.pdf){target="_blank"}
 
 # Orange County, Florida, USA
 ## Block-wise interactive map in Orange County, Florida
