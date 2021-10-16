@@ -2,15 +2,8 @@
 title: "VIS 2128 Spatial Analysis Final Portfolio"
 author: "Yoji Toriumi"
 date: "October 15th, 2021"
-output:
-  html_document:
-    theme: cerulean
-    toc: yes
-    toc_depth: 3
-    toc_float: yes
-  pdf_document:
-    toc: yes
-    toc_depth: '3'
+output: 
+  rmdformats::robobook
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -33,7 +26,7 @@ This map looks at the distance of the open spaces from the closest hospitals. As
 
 This interactive map demonstrates the following skills:
 
-*	Aggregating point data to a layer of polygons
+*	Calculating and displaying relationships among point and polygon layers based on distance
 [![](thumbnails/Map_2.png)](https://yoji-toriumi.github.io/SA_Portfolio/fullsize/Map_2.pdf){target="_blank"}
 
 ## Number of Hospitals in Every Grid
@@ -41,7 +34,7 @@ This map shows the number of hospitals in every grid. Grids are made to divide B
 
 This interactive map demonstrates the following skills:
 
-*	Calculating and displaying relationships among point and polygon layers based on distance
+*	Aggregating point data to a layer of polygons
 [![](thumbnails/Map_3.png)](https://yoji-toriumi.github.io/SA_Portfolio/fullsize/Map_3.pdf){target="_blank"}
 
 # Tokyo, Japan
@@ -62,7 +55,7 @@ This interactive map demonstrates the following skills:
 [![](thumbnails/Map_5.png)](https://yoji-toriumi.github.io/SA_Portfolio/fullsize/Map_5.pdf){target="_blank"}
 
 ## Number of Bus Stops within a 10-Minutes Walk Distance (Raster)
-This map is rasterized image of the above map.
+This map is a rasterized image of the above map.
 
 This interactive map demonstrates the following skills:
 
@@ -88,7 +81,7 @@ This interactive map demonstrates the following skills:
 [![](thumbnails/Map_8.png)](https://yoji-toriumi.github.io/SA_Portfolio/fullsize/Map_8.pdf){target="_blank"}
 
 ## Walking Time to the Nearest School in Mobara City (Vector)
-This map shows walking distance from all of the elementary schools in Mobara city. It indicates many of the areas are under the coverage of 30 to 40 minutes distance. However, it takes more than 40 minutes from certain areas, and it is hard for elementary students to walk every day.
+This map shows walking distance from all of the elementary schools in Mobara city. It indicates many of the areas are under the coverage of 30 to 40 minutes distance. However, it takes more than 40 minutes from certain areas, and it is hard for elementary school students to walk every day.
 
 This interactive map demonstrates the following skills:
 
@@ -104,7 +97,7 @@ This interactive map demonstrates the following skills:
 [![](thumbnails/Map_10.png)](https://yoji-toriumi.github.io/SA_Portfolio/fullsize/Map_10.pdf){target="_blank"}
 
 ## Walking Time to the Nearest School in Mobara City (Contour)
-This is also vectorized map from a raster image.
+This is also a vectorized map from a raster image.
 
 This interactive map demonstrates the following skills:
 
